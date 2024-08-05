@@ -1,16 +1,17 @@
 package http.requests;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
@@ -20,75 +21,40 @@ public class GetRequest
 	String content;
 	HttpResponse response;
 	UsernamePasswordCredentials creds;
-    	ArrayList<BasicNameValuePair> headerPairs;
+	ArrayList<BasicNameValuePair> headerPairs;
 
-  
 	public GetRequest(String url) 
 	{
 		this.url = url;
-            headerPairs = new ArrayList<BasicNameValuePair>();
-
+		this.headerPairs = new ArrayList<>();
 	}
 
-	public void addUser(String user, String pwd) 
-	{
-		creds = new UsernamePasswordCredentials(user, pwd);
-	
-    	}
-    
-    	public void addHeader(String key,String value) {
-        	BasicNameValuePair nvp = new BasicNameValuePair(key,value);
-        	headerPairs.add(nvp);
-        
-    	}  
-      
-	public void send() 
-	{
-		try {
-			DefaultHttpClient httpClient = new DefaultHttpClient();
+	public void sendPostRequest(String url, String jsonPayload) throws IOException {
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			HttpPost httpPost = new HttpPost(url);
+			StringEntity entity = new StringEntity(jsonPayload, ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8));
+			httpPost.setEntity(entity);
+			httpPost.setHeader("Content-Type", "application/json; charset=UTF-8");
 
-			HttpGet httpGet = new HttpGet(url);
-
-			if(creds != null){
-				httpGet.addHeader(new BasicScheme().authenticate(creds, httpGet, null));				
+			// Add headers if any
+			for (BasicNameValuePair headerPair : headerPairs) {
+				httpPost.addHeader(headerPair.getName(), headerPair.getValue());
 			}
 
-                    	Iterator<BasicNameValuePair> headerIterator = headerPairs.iterator();
-                    	while (headerIterator.hasNext()) {
-                      		BasicNameValuePair headerPair = headerIterator.next();
-                      		httpGet.addHeader(headerPair.getName(),headerPair.getValue());
-                    	}
-  
-
-			response = httpClient.execute( httpGet );
-			HttpEntity entity = response.getEntity();
-			this.content = EntityUtils.toString(response.getEntity());
-			
-			if( entity != null ) EntityUtils.consume(entity);
-			httpClient.getConnectionManager().shutdown();
-			
-		} catch( Exception e ) { 
-			e.printStackTrace(); 
+			response = httpClient.execute(httpPost);
+			this.content = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
 		}
 	}
-	
-	/* Getters
-	_____________________________________________________________ */
-	
-	public String getContent()
-	{
+
+	public String getContent() {
 		return this.content;
 	}
-	
-	public String getHeader(String name)
-	{
+
+	public String getHeader(String name) {
 		Header header = response.getFirstHeader(name);
-		if(header == null)
-		{
+		if (header == null) {
 			return "";
-		}
-		else
-		{
+		} else {
 			return header.getValue();
 		}
 	}

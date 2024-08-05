@@ -1,25 +1,17 @@
 package http.requests;
 
-
-// this part will get folded into the HTTP library if all goes well:
-import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
+import java.util.List;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.*;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
@@ -141,5 +133,26 @@ public class DeleteRequest
     {
       return header.getValue();
     }
+  }
+
+  public void sendPostRequest(String url, String jsonPayload) throws IOException {
+    try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity entity = new StringEntity(jsonPayload, ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8));
+        httpPost.setEntity(entity);
+        httpPost.setHeader("Content-Type", "application/json; charset=UTF-8");
+
+        // Add headers if any
+        for (BasicNameValuePair headerPair : headerPairs) {
+            httpPost.addHeader(headerPair.getName(), headerPair.getValue());
+        }
+
+        response = httpClient.execute(httpPost);
+        this.content = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+    }
+  }
+
+  public void addHeader(String name, String value) {
+    this.headerPairs.add(new BasicNameValuePair(name, value));
   }
 }

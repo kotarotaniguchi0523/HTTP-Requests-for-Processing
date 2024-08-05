@@ -143,12 +143,13 @@ ${line}
 				<path refid="classpath"/>
 			</classpath>
 			<compilerarg value="-Xlint"/>
+			<compilerarg value="-encoding"/>
+			<compilerarg value="UTF-8"/>
 		</javac>
 		<copy todir="${project.bin.data}">
 			<fileset dir="${project.data}" excludes="README" />
 		</copy>
 	</target>
-	
 	
 	<target name="generate.jar">
 		<jar jarfile="${project.tmp}/${project.name}/${folder}/${project.jar.name}" basedir="${project.bin}"/>
@@ -386,4 +387,3 @@ ${line}
 	</target>
 	
 </project>
-

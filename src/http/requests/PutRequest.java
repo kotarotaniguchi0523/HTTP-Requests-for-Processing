@@ -108,7 +108,7 @@ public class PutRequest
           mentity.addPart(name, new FileBody(f));
         }        
         for (NameValuePair nvp : nameValuePairs) {
-          mentity.addPart(nvp.getName(), new StringBody(nvp.getValue()));
+          mentity.addPart(nvp.getName(), new StringBody(nvp.getValue(), ContentType.create("text/plain", "UTF-8")));
         }
         httpPut.setEntity(mentity);
       }
@@ -139,6 +139,15 @@ public class PutRequest
     catch( Exception e ) { 
       e.printStackTrace();
     }
+  }
+
+  public void sendPostRequest(String url, String jsonPayload) throws IOException {
+    HttpPost httpPost = new HttpPost(url);
+    StringEntity entity = new StringEntity(jsonPayload, ContentType.APPLICATION_JSON.withCharset("UTF-8"));
+    httpPost.setEntity(entity);
+    httpPost.setHeader("Content-Type", "application/json; charset=UTF-8");
+    HttpResponse response = httpClient.execute(httpPost);
+    this.content = EntityUtils.toString(response.getEntity(), "UTF-8");
   }
   /* Getters
    _____________________________________________________________ */
