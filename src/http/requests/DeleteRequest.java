@@ -46,7 +46,7 @@ public class DeleteRequest
     creds = new UsernamePasswordCredentials(user, pwd);
   }
 
-  public void addHeader(String key, String value) {
+  public void addHeaderPair(String key, String value) {
     BasicNameValuePair nvp = new BasicNameValuePair(key, value);
     headerPairs.add(nvp);
   } 
